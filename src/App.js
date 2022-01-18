@@ -17,6 +17,12 @@ function App() {
   const [game, setGame] = useState();
   const [openGames, setOpenGames] = useState([]);
   const [status, setStatus] = useState([]);
+  const [layout, setLayout] = useState({
+    north: { hand: []},
+    east: { hand: []},
+    south: { hand: []},
+    west: { hand: []},
+  });
 
   useEffect(() => {
     socket.on("open_games", (data) => {
@@ -24,8 +30,8 @@ function App() {
     });
   
     socket.on("update_game", (data) => {
-      console.log('Game Update:', data)
       setGame(data);
+      getLayout(data);
     });
 
     socket.on("status", (data) => {
@@ -53,6 +59,46 @@ function App() {
 
     }
   }, [game]);
+
+  const getLayout = (data) => {
+    if(game){
+      //find current player position
+      let position;
+      for(let i = 0; i < game.players.length; i++){
+        if(data.players[i].id === socket.id){
+          position = i;
+          break;
+        }
+      }
+
+      layout.south = data.players[position];
+
+      switch(position){
+        case 0:
+          layout.west = data.players[1];
+          layout.north = data.players[2];
+          layout.east = data.players[3];
+          break;
+        case 1:
+          layout.west = data.players[2];
+          layout.north = data.players[3];
+          layout.east = data.players[0];
+          break;
+        case 2:
+          layout.west = data.players[3];
+          layout.north = data.players[0];
+          layout.east = data.players[1];
+          break;
+        case 3:
+          layout.west = data.players[0];
+          layout.north = data.players[1];
+          layout.east = data.players[2];
+          break;
+        default:
+          break;
+      }
+    }
+  }
 
 
 
@@ -118,7 +164,7 @@ function App() {
             <Col>
             <center>
                 <div style={{marginLeft: '-33%'}}>
-                  {game.players[0].hand.map(card => {
+                  {layout.north.hand.map(card => {
                     return (
                       <td>
                         {game.status === 'flop' || game.status === 'set trump' ? 
@@ -126,44 +172,59 @@ function App() {
                           : <Card side={'front'} val={card} size='small' />}
                       </td>)})}
                 </div>
+                {layout.north.name} {layout.north.name === game.dealer ? <>D</> : <></>}
               </center>
             </Col>
           </Row>
           <br /><br />
           <Row>
-            <Col>{game.players[3].hand.map(card => {
+            <Col>
+            
+            {layout.west.hand.map(card => {
                                 return (
                   <td>
                     {game.status === 'flop' || game.status === 'set trump' ? 
                       <Card side={'back'} val={card} size='small' /> 
                       : <Card side={'front'} val={card} size='small' />}
                   </td>)
-              })}</Col>
+              })}
+              {layout.west.name} {layout.west.name === game.dealer ? <>D</> : <></>}
+              </Col>
             <Col>
               <td>{game.status === 'flop' ? <Card side='front' val={game.flop} size='small' /> : <></>}</td>
             </Col>
-            <Col>{game.players[1].hand.map(card => {
+            <Col>{layout.east.hand.map(card => {
                                 return (
                   <td>
                     {game.status === 'flop' || game.status === 'set trump' ? 
                       <Card side={'back'} val={card} size='small' /> 
                       : <Card side={'front'} val={card} size='small' />}
                   </td>)
-              })}</Col>
+              })}
+              {layout.east.name} {layout.east.name === game.dealer ? <>D</> : <></>}
+              </Col>
           </Row>
           <br /><br />
           <Row>
             <Col>
               <center>
                 <div style={{marginLeft: '-28%'}}>
-                  {game.players[2].hand.map(card => {
+                  {layout.south.hand.map(card => {
                     return (
                       <td><Card side={'front'} val={card} size='small' /></td>)
                     })}
                 </div>
+                {layout.south.name} {layout.south.name === game.dealer ? <>D</> : <></>}
               </center>
             </Col>
           </Row>
+          {game.turn === layout.south.name ? <>
+          <Row>
+            <Col><button>Pass</button></Col>
+            <Col><button>Order Up</button></Col>
+            <Col><button>Go Alone</button></Col>
+          </Row>
+          </> : <></>}
       </> : <></>}
 
       </> : 

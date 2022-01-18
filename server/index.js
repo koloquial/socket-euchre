@@ -157,7 +157,9 @@ io.on("connection", (socket) => {
                 data.status = 'set trump';
 
                 //update game
-                socket.to(data.host).emit("update_game", data)
+                socket.to(data.host).emit("update_game", data);
+
+                socket.emit("update_game", data);
                 found = true;
                 
             }else{
@@ -168,7 +170,8 @@ io.on("connection", (socket) => {
                     playerCounter = playerCounter + 1;
                 }
                 revealCounter = revealCounter + 1;
-                socket.to(data.host).emit("update_game", data)
+                socket.to(data.host).emit("update_game", data);
+                socket.emit("update_game", data);
                 reveal();
             }
         }
@@ -220,7 +223,8 @@ io.on("connection", (socket) => {
                 break;
             }
         }
-        socket.to(data.game.host).emit("update_game", games[index])
+        socket.to(data.game.host).emit("update_game", data.game);
+        socket.emit("update_game", data.game);
        
     });
 
