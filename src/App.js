@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { Container, Row, Col } from 'react-bootstrap';
 
+import Card from './components/Card';
+import { shuffle } from './functions/shuffle';
+
 const socket = io.connect("http://localhost:3001");
 
 function App() {
@@ -68,46 +71,61 @@ function App() {
           <h1>Euchre</h1>
         </Col>
       </Row>
-    {game ? <>
-    Waiting for players...<br /><br />
-    {game.players.map((player, index) => {
-      return (
-        <>{index + 1}. {player.name}<br /></>
-      )
-    })}
-    {console.log('game:', game)}
-    </> : <>
-    
-      <Row>
-        <Col>
-        <br />
-          <input type='text' placeholder='Enter Player Name' value={name} onChange={handleName} />
-          <p style={{fontSize: 'small'}}>ID: {socket.id}</p>
-          <button onClick={createGame}>Create Game</button><br />
-        </Col>
-        </Row>
-
-        <br /><br />
-
-        <Row>
-        <Col>
-          <h3>Join Game</h3>
-          {[...openGames].reverse().map(game => {
+    {game ? 
+    <>
+      {game.status === 'waiting' ?
+        <>
+          Waiting for players.<br /><br />
+          {game.players.map((player, index) => {
             return (
-              <>
-                {game.status === 'waiting' ? 
-                  <div className='open-games' onClick={() => joinGame(game)}>
-                    <Row>
-                      <Col><b>Host:</b> {game.hostName}</Col>
-                      <Col><b>Players:</b> {game.players.length}/4</Col>
-                    </Row>
-                  </div> : <></>}
-              </>
-              
+              <>{index + 1}. {player.name}<br /></>
             )
           })}
-        </Col>
-      </Row>
+        </> : <></>
+      }
+
+      {game.status === 'active' ? <>
+      
+        {game.turn === '' ? <>
+          First blackjack deals.
+          {shuffle().map(card => {
+            return <Card side={'front'} val={card} />
+          })}
+        </> : <></>}
+
+
+      </> : <></>}
+      </> : 
+      <>
+        <Row>
+          <Col>
+          <br />
+            <input type='text' placeholder='Enter Player Name' value={name} onChange={handleName} />
+            <p style={{fontSize: 'small'}}>ID: {socket.id}</p>
+            <button onClick={createGame}>Create Game</button><br />
+          </Col>
+          </Row>
+
+          <br /><br />
+
+          <Row>
+          <Col>
+            <h3>Join Game</h3>
+            {[...openGames].reverse().map(game => {
+              return (
+                <>
+                  {game.status === 'waiting' ? 
+                    <div className='open-games' onClick={() => joinGame(game)}>
+                      <Row>
+                        <Col><b>Host:</b> {game.hostName}</Col>
+                        <Col><b>Players:</b> {game.players.length}/4</Col>
+                      </Row>
+                    </div> : <></>}
+                </>
+              )
+            })}
+          </Col>
+        </Row>
     </>}
       
     </Container>

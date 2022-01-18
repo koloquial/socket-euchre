@@ -71,11 +71,16 @@ io.on("connection", (socket) => {
                         hand: []
                     }
 
+
+
+                    games[i].players.push(newPlayer);
+
+                    console.log('players:', games[i].players.length)
                     if(games[i].players.length === 4){
+                        console.log('set status')
                         games[i].status = 'active';
                     }
 
-                    games[i].players.push(newPlayer);
                     //send game to client
                     socket.emit("update_game", games[i]);
 
@@ -84,6 +89,8 @@ io.on("connection", (socket) => {
 
                     //send update to all clients
                     io.emit('open_games', games);
+                    
+                    break;
                 }
             }
         }
