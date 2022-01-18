@@ -52,6 +52,10 @@ function App() {
         socket.emit('deal', {game, deck});
       }
 
+      if(game.status === 'flop'){
+        //start timer ?
+      }
+
       if(game.status === 'assign dealer'){
         //wait for dealer to be assigned
         //next step 'set trump'
@@ -100,7 +104,9 @@ function App() {
     }
   }
 
-
+  const pass = () => {
+    socket.emit("pass", game);
+  }
 
   const handleName = (e) => {
     e.preventDefault();
@@ -172,7 +178,7 @@ function App() {
                           : <Card side={'front'} val={card} size='small' />}
                       </td>)})}
                 </div>
-                {layout.north.name} {layout.north.name === game.dealer ? <>D</> : <></>}
+                {layout.north.name} {layout.north.name === game.dealer ? <>D</> : <></>} {layout.north.name === game.turn ? <>*</> : <></>}
               </center>
             </Col>
           </Row>
@@ -188,7 +194,7 @@ function App() {
                       : <Card side={'front'} val={card} size='small' />}
                   </td>)
               })}
-              {layout.west.name} {layout.west.name === game.dealer ? <>D</> : <></>}
+              {layout.west.name} {layout.west.name === game.dealer ? <>D</> : <></>} {layout.west.name === game.turn ? <>*</> : <></>}
               </Col>
             <Col>
               <td>{game.status === 'flop' ? <Card side='front' val={game.flop} size='small' /> : <></>}</td>
@@ -201,7 +207,7 @@ function App() {
                       : <Card side={'front'} val={card} size='small' />}
                   </td>)
               })}
-              {layout.east.name} {layout.east.name === game.dealer ? <>D</> : <></>}
+              {layout.east.name} {layout.east.name === game.dealer ? <>D</> : <></>} {layout.east.name === game.turn ? <>*</> : <></>}
               </Col>
           </Row>
           <br /><br />
@@ -214,13 +220,13 @@ function App() {
                       <td><Card side={'front'} val={card} size='small' /></td>)
                     })}
                 </div>
-                {layout.south.name} {layout.south.name === game.dealer ? <>D</> : <></>}
+                {layout.south.name} {layout.south.name === game.dealer ? <>D</> : <></>} {layout.south.name === game.turn ? <>*</> : <></>}
               </center>
             </Col>
           </Row>
           {game.turn === layout.south.name ? <>
           <Row>
-            <Col><button>Pass</button></Col>
+            <Col><button onClick={pass}>Pass</button></Col>
             <Col><button>Order Up</button></Col>
             <Col><button>Go Alone</button></Col>
           </Row>

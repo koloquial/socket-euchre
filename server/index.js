@@ -228,6 +228,10 @@ io.on("connection", (socket) => {
        
     });
 
+    socket.on("pass", (data) => {
+        
+    })
+
     socket.on("disconect", () => {
         console.log('disconnected:', socket.id);
     });
