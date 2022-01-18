@@ -63,7 +63,6 @@ input{
     border-radius: 5px;
     background-color: #e5e5f7;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
-    opacity: 0.8;
     background-image:  
         linear-gradient(30deg, #444cf7 12%, transparent 12.5%, transparent 87%, #444cf7 87.5%, #444cf7), 
         linear-gradient(150deg, #444cf7 12%, transparent 12.5%, transparent 87%, #444cf7 87.5%, #444cf7), 

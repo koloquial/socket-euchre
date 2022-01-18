@@ -18,8 +18,6 @@ function sleep(ms) {
   }
 
 io.on("connection", (socket) => {
-    console.log("connected:", socket.id);
-
     //emit open games to connecting client
     socket.emit('open_games', games);
 
@@ -53,15 +51,9 @@ io.on("connection", (socket) => {
 
         //emit games to all clients
         io.emit('open_games', games);
-    });
 
-    socket.on("get_game", (data) => {
-        for(let i = 0; i < games.length; i++){
-            if(games[i].host === data){
-                socket.emit("update_game", games[i]);
-                break;
-            }
-        }
+        //emit to user
+        socket.emit("update_game", newGame);
     });
 
     socket.on("update_game", (data) => {
@@ -74,120 +66,11 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("shuffle_deck", (data) => {
-        //remove hands 
-        for(let i = 0; i < data.game.players.length; i++){
-            data.game.players[i].hand = [];
-        }
-        socket.to(data.host).emit("update_game", data)
-
-
-        //deal
-
-        //find player that is dealer (position in array)
-        let dealer;
-        for(let i = 0; i < data.game.players.length; i++){
-            if(data.game.players[i].name === data.game.dealer){
-                dealer = i;
-                break;
-            }
-        }
-
-        for(let i = 0; i < 2; i++){
-
-            for(let j = 1; j < 4; j++){
-                if(dealer + j >= 4){
-                    if(i === 0){
-                        data.game.players[0].hand.push(data.deck.splice(1, 0))
-                        data.game.players[0].hand.push(data.deck.splice(1, 0))
-                        data.game.players[0].hand.push(data.deck.splice(1, 0))
-                        socket.to(data.host).emit("update_game", data)
-                        
-                    }else{
-                        data.game.players[0].hand.push(data.deck.splice(1, 0))
-                        data.game.players[0].hand.push(data.deck.splice(1, 0))
-                        socket.to(data.host).emit("update_game", data)
-                        
-                    }
-                    
-                }else{
-                    if(i === 0){
-                        data.game.players[dealer + j].hand.push(data.deck.splice(1, 0));
-                        data.game.players[dealer + j].hand.push(data.deck.splice(1, 0));
-                        data.game.players[dealer + j].hand.push(data.deck.splice(1, 0));
-                        socket.to(data.host).emit("update_game", data)
-                        
-                    }else{
-                        data.game.players[dealer + j].hand.push(data.deck.splice(1, 0));
-                        data.game.players[dealer + j].hand.push(data.deck.splice(1, 0));
-                        socket.to(data.host).emit("update_game", data)
-                    }
-                    
-                }
-            }
-        }
-
-       
-    });
-
-    socket.on("assign_dealer", (data) => {
-        let found = false;
-        let revealCounter = 0;
-        let playerCounter = 0;
-        data.status = 'assign dealer';
-        socket.to(data.host).emit("status", `First blackjack wins deal.`);
-        
-
-        async function reveal(){
-            await sleep(1000);
-            let card = data.deck[revealCounter];
-            data.players[playerCounter].hand.push(card);
-
-            if(card[0] === 'J' && (card[1] === '♠' || card[1] === '♣')){
-                data.dealer = data.players[playerCounter].name;
-    
-                if(playerCounter === 3){
-                    data.turn = data.players[0].name;
-                }else{
-                    data.turn = data.players[playerCounter + 1].name;
-                }
-    
-                
-
-                for(let i = 0; i < games.length; i++){
-                    if(games[i].host === data.host){
-                        games[i] = data;
-                    }
-                }
-
-                socket.to(data.host).emit("update_game", data)
-                socket.to(data.host).emit("status", `${data.dealer} won the deal.`);
-                socket.to(data.host).emit("status", `${data.turn}'s call.`);
-                await sleep(3000);
-                data.status = 'set trump';
-                socket.to(data.host).emit("update_game", data)
-                found = true;
-                
-            }else{
-                if(playerCounter === 3){
-                    playerCounter = 0;
-                }else{
-                    playerCounter = playerCounter + 1;
-                }
-                revealCounter = revealCounter + 1;
-                socket.to(data.host).emit("update_game", data)
-                reveal();
-            }
-        }
-
-        reveal();
-    });
-    
-
     socket.on("join_game", (data) => {
+        //find current game on server
         for(let i = 0; i < games.length; i++){
             if(games[i].host === data.game.host){
-
+                //game found
                 //check player length
                 if(games[i].players.length < 4){
                     //join room
@@ -199,14 +82,11 @@ io.on("connection", (socket) => {
                         name: data.name,
                         hand: []
                     }
-
                     games[i].players.push(newPlayer);
 
-                    console.log('players:', games[i].players.length)
+                    //if game is full, set status to active
                     if(games[i].players.length === 4){
-                        console.log('set status')
                         games[i].status = 'active';
-
                     }
 
                     //send game to client
@@ -222,6 +102,126 @@ io.on("connection", (socket) => {
                 }
             }
         }
+    });
+
+    socket.on("assign_dealer", (data) => {
+        //find dealer
+        let found = false;
+
+        //regulates which card in deck revealed
+        let revealCounter = 0;
+
+        //iterates around each player e.g. 0-3
+        let playerCounter = 0;
+
+        //change status 
+        data.status = 'assign dealer';
+        socket.to(data.host).emit("status", `First blackjack wins deal.`);
+        
+        //reveal cards one by one until a black jack is revealed
+        async function reveal(){
+            //sleep before every iteration
+            await sleep(500);
+
+            //draw card and push into target player hand
+            let card = data.deck[revealCounter];
+            data.players[playerCounter].hand.push(card);
+
+            //check if card is a black jack
+            if(card[0] === 'J' && (card[1] === '♠' || card[1] === '♣')){
+                //black jack found
+                //set dealer
+                data.dealer = data.players[playerCounter].name;
+    
+                //set turn to right of dealer
+                if(playerCounter === 3){
+                    data.turn = data.players[0].name;
+                }else{
+                    data.turn = data.players[playerCounter + 1].name;
+                }
+
+                //update server game file
+                for(let i = 0; i < games.length; i++){
+                    if(games[i].host === data.host){
+                        games[i] = data;
+                    }
+                }
+
+                //send game update to room
+                socket.to(data.host).emit("update_game", data)
+                socket.to(data.host).emit("status", `${data.dealer} won the deal.`);
+                await sleep(4000);
+                socket.to(data.host).emit("status", `${data.turn}'s call.`);
+
+                //change status to set trump
+                data.status = 'set trump';
+
+                //update game
+                socket.to(data.host).emit("update_game", data)
+                found = true;
+                
+            }else{
+                //current draw is not a black jack
+                if(playerCounter === 3){
+                    playerCounter = 0;
+                }else{
+                    playerCounter = playerCounter + 1;
+                }
+                revealCounter = revealCounter + 1;
+                socket.to(data.host).emit("update_game", data)
+                reveal();
+            }
+        }
+
+        reveal();
+    });
+
+    socket.on("deal", (data) => {
+        let temp = [];
+        temp.push(data.deck[0]);
+        temp.push(data.deck[1]);
+        temp.push(data.deck[2]);
+        temp.push(data.deck[3]);
+        temp.push(data.deck[4]);
+        data.game.players[0].hand = temp;
+
+        temp = [];
+        temp.push(data.deck[5]);
+        temp.push(data.deck[6]);
+        temp.push(data.deck[7]);
+        temp.push(data.deck[8]);
+        temp.push(data.deck[9]);
+        data.game.players[1].hand = temp;
+
+        temp = [];
+        temp.push(data.deck[10]);
+        temp.push(data.deck[11]);
+        temp.push(data.deck[12]);
+        temp.push(data.deck[13]);
+        temp.push(data.deck[14]);
+        data.game.players[2].hand = temp;
+
+        temp = [];
+        temp.push(data.deck[15]);
+        temp.push(data.deck[16]);
+        temp.push(data.deck[17]);
+        temp.push(data.deck[18]);
+        temp.push(data.deck[19]);
+        data.game.players[3].hand = temp;
+
+        data.game.flop = data.deck[20];
+        data.game.status = 'flop';
+
+        let index;
+        for(let i = 0; i < games.length; i++){
+            if(games[i].host === data.game.host){
+                games[i] = data.game;
+                index = i;
+                break;
+            }
+        }
+        socket.to(data.game.host).emit("update_game", games[index])
+       
     });
 
     socket.on("disconect", () => {

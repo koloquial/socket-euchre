@@ -5,13 +5,18 @@ import { Container, Row, Col } from 'react-bootstrap';
 import Card from './components/Card';
 import { shuffle } from './functions/shuffle';
 
+import Title from './components/Title';
+import Waiting from './components/Waiting';
+import PlayerName from './components/PlayerName';
+import JoinGame from './components/JoinGame';
+
 const socket = io.connect("http://localhost:3001");
 
 function App() {
   const [name, setName] = useState('');
   const [game, setGame] = useState();
   const [openGames, setOpenGames] = useState([]);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState([]);
 
   useEffect(() => {
     socket.on("open_games", (data) => {
@@ -19,32 +24,32 @@ function App() {
     });
   
     socket.on("update_game", (data) => {
-      console.log(data);
+      console.log('Game Update:', data)
       setGame(data);
-    })
+    });
 
     socket.on("status", (data) => {
       setStatus(data);
-    })
+    });
   });
 
   useEffect(() => {
     if(game){
 
       if(game.status === 'active' && game.dealer === ''){
-          socket.emit("assign_dealer", game);
+        //next status 'assign dealer'
+        socket.emit("assign_dealer", game);
       }
 
       if(game.status === 'set trump'){
         const deck = shuffle();
-        socket.emit('shuffle_deck', {game, deck});
-
+        socket.emit('deal', {game, deck});
       }
 
       if(game.status === 'assign dealer'){
-        console.log('iteration')
+        //wait for dealer to be assigned
+        //next step 'set trump'
       }
-
 
     }
   }, [game]);
@@ -57,8 +62,8 @@ function App() {
   }
 
   const joinGame = (game) => {
+    //validate player name
     let temp = '';
-
     if(name === ''){
       temp = socket.id.substring(0, 10);
     }else if(name.length > 10){
@@ -67,12 +72,13 @@ function App() {
       temp = name;
     }
 
+    //join game
     socket.emit("join_game", {id: socket.id, name: temp, game: game});
   }
 
   const createGame = () => {
+    //validate player name
     let temp = '';
-
     if(name === ''){
       temp = socket.id.substring(0, 10);
     }else if(name.length > 10){
@@ -80,179 +86,92 @@ function App() {
     }else{
       temp = name;
     }
-
+    
+    //create new deck
     const deck = shuffle();
 
+    //create new game
     const newGame = {
       id: socket.id,
       name: temp,
       deck: deck
     }
 
+    //commit to server
     socket.emit("create_game", newGame);
-    socket.emit("get_game", socket.id);
   }
-
 
 
   return (
     <Container>
-      <Row>
-        <Col>
-          <h1>Euchre</h1>
-        </Col>
-      </Row>
+      <Title />
+     
     {game ? 
     <>
+       <Waiting game={game} />
 
-      {game.status === 'waiting' ?
-        <>
-          Waiting for players.<br /><br />
-          {game.players.map((player, index) => {
-            return (
-              <>{index + 1}. {player.name}<br /></>
-            )
-          })}
-        </> : <></>
-      }
 
-      {game.status === 'assign dealer' ? <>
+       {game.status === 'assign dealer' || game.status === 'flop' || game.status === 'set trump' ? <>
           {status}
           <br /><br />
-          <center>
           <Row>
             <Col>
-            <table>
-              <tr>
-              {game.players[0].hand.map(card => {
-                return <td><Card side={'front'} val={card} /></td>
-              })}
-              </tr>
-            </table>     
+            <center>
+                <div style={{marginLeft: '-33%'}}>
+                  {game.players[0].hand.map(card => {
+                    return (
+                      <td>
+                        {game.status === 'flop' || game.status === 'set trump' ? 
+                          <Card side={'back'} val={card} size='small' /> 
+                          : <Card side={'front'} val={card} size='small' />}
+                      </td>)})}
+                </div>
+              </center>
             </Col>
           </Row>
-          <Row>
-          <Col>
-          <table>
-              <tr>
-              {game.players[3].hand.map(card => {
-                return <td style={{verticalAlign: 'top'}}><Card side={'front'} val={card} /></td>
-              })}
-              </tr>
-            </table>  
-            </Col>
-            <Col>
-            <table>
-              <tr>
-              {game.players[1].hand.map(card => {
-                return <td><Card side={'front'} val={card} /></td>
-              })}
-              </tr>
-            </table>  
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-            <table>
-              <tr>
-              {game.players[2].hand.map(card => {
-                return <td><Card side={'front'} val={card} /></td>
-              })}
-              </tr>
-            </table>  
-            </Col>
-          </Row>
-          </center>
-
-
-      </> : <></>}
-
-      {game.status === 'set trump' ? <>
-          {status}
           <br /><br />
-          <center>
+          <Row>
+            <Col>{game.players[3].hand.map(card => {
+                                return (
+                  <td>
+                    {game.status === 'flop' || game.status === 'set trump' ? 
+                      <Card side={'back'} val={card} size='small' /> 
+                      : <Card side={'front'} val={card} size='small' />}
+                  </td>)
+              })}</Col>
+            <Col>
+              <td>{game.status === 'flop' ? <Card side='front' val={game.flop} size='small' /> : <></>}</td>
+            </Col>
+            <Col>{game.players[1].hand.map(card => {
+                                return (
+                  <td>
+                    {game.status === 'flop' || game.status === 'set trump' ? 
+                      <Card side={'back'} val={card} size='small' /> 
+                      : <Card side={'front'} val={card} size='small' />}
+                  </td>)
+              })}</Col>
+          </Row>
+          <br /><br />
           <Row>
             <Col>
-            <table>
-              <tr>
-              {game.players[0].hand.map(card => {
-                return <td><Card side={'back'} val={card} size='small' /></td>
-              })}
-              </tr>
-            </table>     
+              <center>
+                <div style={{marginLeft: '-28%'}}>
+                  {game.players[2].hand.map(card => {
+                    return (
+                      <td><Card side={'front'} val={card} size='small' /></td>)
+                    })}
+                </div>
+              </center>
             </Col>
           </Row>
-          <Row>
-          <Col>
-          <div style={{transform: 'rotate(90deg)'}}>
-            <table>
-              <tr>
-              {game.players[3].hand.map(card => {
-                return <td><Card side={'back'} val={card} size='small' /></td>
-              })}
-              </tr>
-            </table>  
-            </div> 
-            </Col>
-            <Col>
-            <div style={{transform: 'rotate(90deg)'}}>
-            <table>
-              <tr>
-              {game.players[1].hand.map(card => {
-                return <td><Card side={'back'} val={card} size='small' /></td>
-              })}
-              </tr>
-            </table>  
-            </div>
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-            <table>
-              <tr>
-              {game.players[2].hand.map(card => {
-                return <td><Card side={'front'} val={card} size='small' /></td>
-              })}
-              </tr>
-            </table>  
-            </Col>
-          </Row>
-          </center>
-
-
       </> : <></>}
 
       </> : 
       <>
-        <Row>
-          <Col>
-          <br />
-            <input type='text' placeholder='Enter Player Name' value={name} onChange={handleName} />
-            <p style={{fontSize: 'small'}}>ID: {socket.id}</p>
-            <button onClick={createGame}>Create Game</button><br />
-          </Col>
-          </Row>
-
-          <br /><br />
-
-          <Row>
-          <Col>
-            <h3>Join Game</h3>
-            {[...openGames].reverse().map(game => {
-              return (
-                <>
-                  {game.status === 'waiting' ? 
-                    <div className='open-games' onClick={() => joinGame(game)}>
-                      <Row>
-                        <Col><b>Host:</b> {game.hostName}</Col>
-                        <Col><b>Players:</b> {game.players.length}/4</Col>
-                      </Row>
-                    </div> : <></>}
-                </>
-              )
-            })}
-          </Col>
-        </Row>
+        <PlayerName name={name} handleName={handleName} socket={socket} />
+        <button onClick={createGame}>Create Game</button><br />
+        <br /><br />
+        <JoinGame openGames={openGames} joinGame={joinGame} />
     </>}
       
     </Container>

@@ -25,7 +25,7 @@ const Card = ({ val, side, size }) => {
                 </div>
 
                 <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: '0'}}>
-                    <center><p style={{fontSize: '75px', opacity: '.3', color: color}}>{type}</p></center>
+                    <center><p style={{fontSize: '100px', opacity: '.3', color: color}}>{type}</p></center>
                 </div>
             </div>
         )
