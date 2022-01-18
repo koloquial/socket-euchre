@@ -11,19 +11,45 @@ function App() {
   const [name, setName] = useState('');
   const [game, setGame] = useState();
   const [openGames, setOpenGames] = useState([]);
-
-  socket.on("open_games", (data) => {
-    setOpenGames(data);
-  });
-
-  socket.on("update_game", (data) => {
-    console.log(data);
-    setGame(data);
-  })
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
-    
+    socket.on("open_games", (data) => {
+      setOpenGames(data);
+    });
+  
+    socket.on("update_game", (data) => {
+      console.log(data);
+      setGame(data);
+    })
+
+    socket.on("status", (data) => {
+      setStatus(data);
+    })
   });
+
+  useEffect(() => {
+    if(game){
+
+      if(game.status === 'active' && game.dealer === ''){
+          socket.emit("assign_dealer", game);
+      }
+
+      if(game.status === 'set trump'){
+        const deck = shuffle();
+        socket.emit('shuffle_deck', {game, deck});
+
+      }
+
+      if(game.status === 'assign dealer'){
+        console.log('iteration')
+      }
+
+
+    }
+  }, [game]);
+
+
 
   const handleName = (e) => {
     e.preventDefault();
@@ -55,14 +81,19 @@ function App() {
       temp = name;
     }
 
+    const deck = shuffle();
+
     const newGame = {
       id: socket.id,
-      name: temp
+      name: temp,
+      deck: deck
     }
 
     socket.emit("create_game", newGame);
     socket.emit("get_game", socket.id);
   }
+
+
 
   return (
     <Container>
@@ -73,6 +104,7 @@ function App() {
       </Row>
     {game ? 
     <>
+
       {game.status === 'waiting' ?
         <>
           Waiting for players.<br /><br />
@@ -84,17 +116,112 @@ function App() {
         </> : <></>
       }
 
-      {game.status === 'active' ? <>
-      
-        {game.turn === '' ? <>
-          First blackjack deals.
-          {shuffle().map(card => {
-            return <Card side={'front'} val={card} />
-          })}
-        </> : <></>}
+      {game.status === 'assign dealer' ? <>
+          {status}
+          <br /><br />
+          <center>
+          <Row>
+            <Col>
+            <table>
+              <tr>
+              {game.players[0].hand.map(card => {
+                return <td><Card side={'front'} val={card} /></td>
+              })}
+              </tr>
+            </table>     
+            </Col>
+          </Row>
+          <Row>
+          <Col>
+          <table>
+              <tr>
+              {game.players[3].hand.map(card => {
+                return <td style={{verticalAlign: 'top'}}><Card side={'front'} val={card} /></td>
+              })}
+              </tr>
+            </table>  
+            </Col>
+            <Col>
+            <table>
+              <tr>
+              {game.players[1].hand.map(card => {
+                return <td><Card side={'front'} val={card} /></td>
+              })}
+              </tr>
+            </table>  
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+            <table>
+              <tr>
+              {game.players[2].hand.map(card => {
+                return <td><Card side={'front'} val={card} /></td>
+              })}
+              </tr>
+            </table>  
+            </Col>
+          </Row>
+          </center>
 
 
       </> : <></>}
+
+      {game.status === 'set trump' ? <>
+          {status}
+          <br /><br />
+          <center>
+          <Row>
+            <Col>
+            <table>
+              <tr>
+              {game.players[0].hand.map(card => {
+                return <td><Card side={'back'} val={card} size='small' /></td>
+              })}
+              </tr>
+            </table>     
+            </Col>
+          </Row>
+          <Row>
+          <Col>
+          <div style={{transform: 'rotate(90deg)'}}>
+            <table>
+              <tr>
+              {game.players[3].hand.map(card => {
+                return <td><Card side={'back'} val={card} size='small' /></td>
+              })}
+              </tr>
+            </table>  
+            </div> 
+            </Col>
+            <Col>
+            <div style={{transform: 'rotate(90deg)'}}>
+            <table>
+              <tr>
+              {game.players[1].hand.map(card => {
+                return <td><Card side={'back'} val={card} size='small' /></td>
+              })}
+              </tr>
+            </table>  
+            </div>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+            <table>
+              <tr>
+              {game.players[2].hand.map(card => {
+                return <td><Card side={'front'} val={card} size='small' /></td>
+              })}
+              </tr>
+            </table>  
+            </Col>
+          </Row>
+          </center>
+
+
+      </> : <></>}
+
       </> : 
       <>
         <Row>
