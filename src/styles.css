@@ -1,0 +1,35 @@
+.open-games{
+    background-color: #EEEEEE;
+    margin: 5px;
+    padding: 5px;
+    cursor: pointer;
+    border: 1px solid #EEEEEE;
+    transition: background-color .5s;
+}
+
+.open-games:hover{
+    background-color: #FFFFFF;
+    border: 1px dotted #DDDDDD;
+    transition: background-color .3s;
+}
+
+button{
+    background-color: #EEEEEE;
+    margin: 5px;
+    padding: 5px;
+    cursor: pointer;
+    border: 1px solid #EEEEEE;
+    transition: background-color .5s; 
+}
+
+button:hover{
+    background-color: #FFFFFF;
+    border: 1px dotted #DDDDDD;
+    transition: background-color .3s;
+}
+
+input{
+    background-color: #FFFFFF;
+    border: 1px dotted #DDDDDD;
+    transition: background-color .3s;  
+}
