@@ -5,11 +5,11 @@ const Waiting = ({ game }) => {
         <>
             {game.status === 'waiting' ?
                 <>
-                    Waiting for players.
+                    <p>Waiting for players.</p>
                     <br /><br />
                     {game.players.map((player, index) => {
                         return (
-                            <>{index + 1}. {player.name}<br /></>
+                            <p>{index + 1}. {player.name}<br /></p>
                         )
             })}</> : <></>}
         </>
