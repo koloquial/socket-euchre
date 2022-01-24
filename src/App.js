@@ -149,19 +149,29 @@ function App() {
           <Row>
           <Col>
             <center>
-              <p>{game.dealer.id === layout[3].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[3].name}</p>
+             
+
+              <div style={{transform: 'rotate(90deg)', verticalAlign: 'top'}}>
               {layout[3].hand.map(card => {
                   return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
                 })}
+                </div>
+                <br /><br /><br /><br />
+                <p>{game.dealer.id === layout[3].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[3].name}</p>
               </center>
             </Col>
-            <Col></Col>
+            <Col><br /><br /><br /><br /></Col>
             <Col>
               <center>
-                <p>{game.dealer.id === layout[1].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[1].name}</p>
+              
+                
+                <div style={{transform: 'rotate(-90deg)', verticalAlign: 'top'}}>
                 {layout[1].hand.map(card => {
                   return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
                 })}
+                </div>
+                <br /><br /><br />
+                <p>{game.dealer.id === layout[1].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[1].name}</p>
                 </center>
             </Col>
           </Row>

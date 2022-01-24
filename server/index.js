@@ -181,11 +181,9 @@ io.on("connection", (socket) => {
 
         data.deck = shuffle();
         
-        io.to(data.host).emit("update_game", data);
-
         //find dealer and set player counter to next on right
         for(let i = 0; i < data.players.length; i++){
-            if(data.players[i].id === data.dealer){
+            if(data.players[i].id === data.dealer.id){
                 switch(i){
                     case 0: data.playerCounter = 1; break;
                     case 1: data.playerCounter = 2; break;
@@ -195,6 +193,8 @@ io.on("connection", (socket) => {
                 }
             }
         }
+
+        io.to(data.host).emit("update_game", data);
 
         const drawCard = async () => {
             //deal hand 1
@@ -221,7 +221,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
 
-            await sleep(1000);
+            await sleep(300);
         
             //deal hand 2
             draw = data.deck.shift();
@@ -242,7 +242,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
 
-            await sleep(1000);
+            await sleep(300);
 
             //deal hand 3
             draw = data.deck.shift();
@@ -268,7 +268,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
 
-            await sleep(1000);
+            await sleep(300);
 
             //deal hand 4
             draw = data.deck.shift();
@@ -289,7 +289,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
 
-            await sleep(1000);
+            await sleep(300);
 
             //deal hand rest 1
             draw = data.deck.shift();
@@ -310,7 +310,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
 
-            await sleep(1000);
+            await sleep(300);
 
             //deal hand rest 2
             draw = data.deck.shift();
@@ -336,7 +336,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
 
-            await sleep(1000);
+            await sleep(300);
 
             //deal hand rest 3
             draw = data.deck.shift();
@@ -357,7 +357,7 @@ io.on("connection", (socket) => {
                 default: break;
             }
             
-            await sleep(1000);
+            await sleep(300);
 
             //deal hand rest 4
             draw = data.deck.shift();
