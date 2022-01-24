@@ -138,6 +138,7 @@ io.on("connection", (socket) => {
                 //black jack found
                 data.dealer = data.players[data.playerCounter];
                 data.status = 'deal';
+                reveal();
                 return true;
             }else{
                 //black jack not found
@@ -159,6 +160,9 @@ io.on("connection", (socket) => {
 
             //send game to all players
             io.to(data.host).emit("update_game", data);
+            if(game.status === 'deal'){
+                await sleep(3000);
+            }
 
         }
 
@@ -373,9 +377,23 @@ io.on("connection", (socket) => {
             draw = data.deck.shift();
             data.players[data.playerCounter].hand.push(draw);
             await sleep(100);
-            io.to(data.host).emit("update_game", data);
+
+                    //set call
+        for(let i = 0; i < data.players.length; i++){
+            if(data.players[i].id === data.dealer.id){
+                switch(i){
+                    case 0: data.turn = data.players[1]; break;
+                    case 1: data.turn = data.players[2]; break;
+                    case 2: data.turn = data.players[3]; break;
+                    case 3: data.turn = data.players[0]; break;
+                    default: break;
+                }
+            }
+        }
+            
 
             data.status = 'set trump';
+            io.to(data.host).emit("update_game", data);
         }
 
         drawCard();

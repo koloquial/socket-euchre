@@ -20,7 +20,7 @@ const Card = ({ val, side, size }) => {
                     <center><p style={{fontSize: '20px', color: color}}>{value}<br />{type}</p></center>
                 </div>
 
-                <div style={{display: 'inline-block', position: 'absolute', width: '40px', height: '40px', right: '00px', bottom: '0px', transform: 'rotate(180deg)'}}>
+                <div style={{display: 'inline-block', position: 'absolute', width: '40px', height: '40px', right: '0px', bottom: '0px', transform: 'rotate(180deg)'}}>
                     <center><p style={{fontSize: '20px', color: color}}>{value}<br />{type}</p></center>
                 </div>
 
@@ -31,7 +31,7 @@ const Card = ({ val, side, size }) => {
         )
     }else{
         return (
-            <div className='card-back'>
+            <div className='card-back' style={size === 'small' ? {height: '80%', width: '80%', marginRight: '-10px'} : {}} >
                 &nbsp;
             </div>
         )

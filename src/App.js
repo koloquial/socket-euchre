@@ -126,6 +126,7 @@ function App() {
   }
 
   return (
+    
     <Container>
       <Title />
      
@@ -139,9 +140,14 @@ function App() {
           <Row>
             <Col>
               <center>
-                <p>{game.dealer.id === layout[0].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[0].name}</p>
+                  {game.dealer.id === layout[0].id ? 
+                    <p style={{color: 'gold', display: 'inline'}}>♔</p> 
+                    : <></>}
+                    
+                    <p style={{color: game.turn.id === layout[0].id  ? 'white' : '#666666'}}>{layout[0].name}</p>
+                    
                 {layout[0].hand.map(card => {
-                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
+                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={'small'} /></td>
                 })}
               </center>
             </Col>
@@ -149,40 +155,70 @@ function App() {
           <Row>
           <Col>
             <center>
-             
-
               <div style={{transform: 'rotate(90deg)', verticalAlign: 'top'}}>
               {layout[3].hand.map(card => {
-                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
+                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={'small'} /></td>
                 })}
                 </div>
                 <br /><br /><br /><br />
-                <p>{game.dealer.id === layout[3].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[3].name}</p>
+                {game.dealer.id === layout[3].id ? 
+                    <p style={{color: 'gold', display: 'inline'}}>♔</p> 
+                    : <></>}
+                    
+                    <p style={{color: game.turn.id === layout[3].id  ? 'white' : '#666666'}}>{layout[3].name}</p>
               </center>
             </Col>
-            <Col><br /><br /><br /><br /></Col>
+            <Col>
+                <div>
+
+                </div>
+            </Col>
             <Col>
               <center>
-              
-                
                 <div style={{transform: 'rotate(-90deg)', verticalAlign: 'top'}}>
                 {layout[1].hand.map(card => {
-                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
+                  return (
+                    <td>
+                      <Card 
+                        val={card} 
+                        side={game.status === 'assign dealer' ? 'front' : 'back'} 
+                        size={'small'} />
+                      </td>
+                  )
                 })}
                 </div>
                 <br /><br /><br />
-                <p>{game.dealer.id === layout[1].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[1].name}</p>
+                {game.dealer.id === layout[1].id ? 
+                    <p style={{color: 'gold', display: 'inline'}}>♔</p> 
+                    : <></>}
+                    
+                    <p style={{color: game.turn.id === layout[1].id  ? 'white' : '#666666'}}>{layout[1].name}</p>
                 </center>
             </Col>
           </Row>
           <Row>
           <Col>
+          
             <center>
-              <p>{game.dealer.id === layout[2].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[2].name}</p>
-              {layout[2].hand.map(card => {
-                  return <td><Card val={card} side={'front'} size={''} /></td>
+            {game.dealer.id === layout[2].id ? 
+                    <p style={{color: 'gold', display: 'inline'}}>♔</p> 
+                    : <></>}
+                    
+                    <p style={{color: game.turn.id === layout[2].id ? 'white' : '#666666'}}>{layout[2].name}</p>
+              
+              {layout[2].hand.map((card, index) => {
+                  return <td><Card val={card} side={game.status === 'dealing' ? 'back': 'front'} size={''} index={index} /></td>
                 })}
+                <br />
+
+                {game.turn.id === socket.id ? <>
+                <button>Pass</button>&nbsp;&nbsp;&nbsp;
+                <button>Order Up</button>&nbsp;&nbsp;&nbsp;
+                <button>Go Alone</button>&nbsp;&nbsp;&nbsp;
+                </> : <></>}
+                
               </center>
+              
             </Col>
           </Row>
         </div> : <></>}
