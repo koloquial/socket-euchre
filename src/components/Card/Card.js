@@ -16,11 +16,11 @@ const Card = ({ val, side, size }) => {
     
         return (
             <div className='card'>
-                <div style={{display: 'inline-block', position: 'absolute', width: '40px', height: '40px', left: '10px', top: '10px'}}>
+                <div style={{display: 'inline-block', position: 'absolute', width: '40px', height: '40px', left: '0px', top: '0px'}}>
                     <center><p style={{fontSize: '20px', color: color}}>{value}<br />{type}</p></center>
                 </div>
 
-                <div style={{display: 'inline-block', position: 'absolute', width: '40px', height: '40px', right: '10px', bottom: '10px', transform: 'rotate(180deg)'}}>
+                <div style={{display: 'inline-block', position: 'absolute', width: '40px', height: '40px', right: '00px', bottom: '0px', transform: 'rotate(180deg)'}}>
                     <center><p style={{fontSize: '20px', color: color}}>{value}<br />{type}</p></center>
                 </div>
 

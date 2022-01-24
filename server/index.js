@@ -67,6 +67,7 @@ io.on("connection", (socket) => {
             trump: '',
             deck: shuffle(),
             playerCounter: 0,
+            revealCounter: 0,
             message: '',
         };
         games.push(newGame);
@@ -82,7 +83,7 @@ io.on("connection", (socket) => {
         for(let i = 0; i < games.length; i++){
             if(games[i].host === data.host){
                games[i] = data;
-               socket.to(data.host).emit("update_game", games[i])
+               io.to(data.host).emit("update_game", games[i])
                 break;
             }
         }
@@ -108,14 +109,11 @@ io.on("connection", (socket) => {
 
                     //if game is full, set status to active
                     if(games[i].players.length === 4){
-                        games[i].status = 'active';
+                        games[i].status = 'assign dealer';
                     }
 
-                    //send game to client
-                    socket.emit("update_game", games[i]);
-
                     //send game to all players
-                    socket.to(data.game.host).emit("update_game", games[i])
+                    io.to(data.game.host).emit("update_game", games[i])
 
                     //send update to all clients
                     io.emit('open_games', games);
@@ -127,56 +125,260 @@ io.on("connection", (socket) => {
     });
 
     socket.on("assign_dealer", (data) => {
+        let valid;
 
-        console.log(data);
-//loop through deck to find first black jack
-for(let i = 0; i < data.deck.length; i++){
+        const drawCard = async () => {
+            let draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
 
-    console.log('deck', data.deck);
-    //flip card
-    let card = data.deck.shift();
-    try{
-        if(data.players[data.playerCounter].hand !== undefined){
-            data.players[data.playerCounter].hand.push(card);
-        }
-        
-    }catch(e){}
+            console.log('draw', draw);
+            console.log('hand', data.players[data.playerCounter].hand);
 
-    //check black jack
-    if(card[0] === 'J'){
-        console.log('blackjack found')
-        //black jack found
-        data.dealer = data.players[data.playerCounter].id; 
-        // data.deck = shuffle();
-        data.status = 'set trump'
-        //update server file
-        for(let i = 0; i < games.length; i++){
-            if(games[i].host === data.host){
-                games[i] = data;
-                break;
+            if(draw[0] === 'J' && ( draw[1] === '♣' || draw[1] === '♠') ){
+                //black jack found
+                data.dealer = data.players[data.playerCounter];
+                data.status = 'deal';
+                return true;
+            }else{
+                //black jack not found
+                switch(data.playerCounter){
+                    case 0: data.playerCounter = 1; break;
+                    case 1: data.playerCounter = 2; break;
+                    case 2: data.playerCounter = 3; break;
+                    case 3: data.playerCounter = 0; break;
+                    default: break;
+                }
+                data.revealCounter = data.revealCounter + 1;
+                return false;
             }
         }
-        console.log('BEFORE EMIT', data);
-         //send message
-        socket.to(data.host).emit("message", `${data.players[data.playerCounter].name} won deal.`)
-    }else{
-        //black jack not found
-        if(data.playerCounter === 3){
-            data.playerCounter = 0;
-        }else{
-            data.playerCounter++;
-        }
-    }
-    //update game
-    socket.to(data.host).emit("update_game", data);
 
-    if(data.dealer !== ''){
-        break;
-    }
-    }
-        console.log('here', data);
-    socket.to(data.host).emit("update_game", data);
-   
+        const reveal = async() => {    
+           
+            await sleep(500);
+
+            //send game to all players
+            io.to(data.host).emit("update_game", data);
+
+        }
+
+        while(!valid){
+            valid = drawCard();
+            reveal();
+        }
+
+    });
+
+    socket.on("deal", (data) => {
+
+        console.log('DEALING');
+
+        data.status = 'dealing';
+
+        for(let i = 0; i < data.players.length; i++){
+            data.players[i].hand.splice(0, data.players[i].hand.length);
+        }
+
+        data.deck = shuffle();
+        
+        io.to(data.host).emit("update_game", data);
+
+        //find dealer and set player counter to next on right
+        for(let i = 0; i < data.players.length; i++){
+            if(data.players[i].id === data.dealer){
+                switch(i){
+                    case 0: data.playerCounter = 1; break;
+                    case 1: data.playerCounter = 2; break;
+                    case 2: data.playerCounter = 3; break;
+                    case 3: data.playerCounter = 0; break;
+                    default: break;
+                }
+            }
+        }
+
+        const drawCard = async () => {
+            //deal hand 1
+            let draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+
+            await sleep(1000);
+        
+            //deal hand 2
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+
+            await sleep(1000);
+
+            //deal hand 3
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+            
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+
+            await sleep(1000);
+
+            //deal hand 4
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+
+            await sleep(1000);
+
+            //deal hand rest 1
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+
+            await sleep(1000);
+
+            //deal hand rest 2
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+            
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+
+            await sleep(1000);
+
+            //deal hand rest 3
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            switch(data.playerCounter){
+                case 0: data.playerCounter = 1; break;
+                case 1: data.playerCounter = 2; break;
+                case 2: data.playerCounter = 3; break;
+                case 3: data.playerCounter = 0; break;
+                default: break;
+            }
+            
+            await sleep(1000);
+
+            //deal hand rest 4
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            draw = data.deck.shift();
+            data.players[data.playerCounter].hand.push(draw);
+            await sleep(100);
+            io.to(data.host).emit("update_game", data);
+
+            data.status = 'set trump';
+        }
+
+        drawCard();
     });
 
     

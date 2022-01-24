@@ -57,13 +57,13 @@ input:hover{
 
 .card{
     display: inline-block;
-    width: 150px;
-    height: 204px;
-    margin-right: -100px;
+    width: 100px;
+    height: 154px;
+    margin-right: -50px;
     padding: 10px;
     border: 5px solid rgb(63, 63, 63);
     border-radius: 5px;
-    background-color: rgba(245, 245, 245, 0.8) !important;
+    background-color: rgba(245, 245, 245) !important;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
     -webkit-animation: fadein .5s; /* Safari, Chrome and Opera > 12.1 */
     -moz-animation: fadein .5s; /* Firefox < 16 */
@@ -75,24 +75,26 @@ input:hover{
 
 .card-back{
     display: inline-block;
-    width: 150px;
-    height: 204px;
-    margin: 10px;
+    width: 100px;
+    height: 154px;
+    margin-right: -50px;
     padding: 10px;
-    border: 5px solid rgba(245, 245, 245, 0.8);
-    margin-right: -155px;
+    border: 5px solid rgb(63, 63, 63);
     border-radius: 5px;
+    background-color: rgba(245, 245, 245) !important;
     box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
-    background-color: #000000;
-    opacity: 1;
-    background-image:  linear-gradient(30deg, #212121 12%, transparent 12.5%, transparent 87%, #212121 87.5%, #212121), linear-gradient(150deg, #212121 12%, transparent 12.5%, transparent 87%, #212121 87.5%, #212121), linear-gradient(30deg, #212121 12%, transparent 12.5%, transparent 87%, #212121 87.5%, #212121), linear-gradient(150deg, #212121 12%, transparent 12.5%, transparent 87%, #212121 87.5%, #212121), linear-gradient(60deg, #21212177 25%, transparent 25.5%, transparent 75%, #21212177 75%, #21212177), linear-gradient(60deg, #21212177 25%, transparent 25.5%, transparent 75%, #21212177 75%, #21212177);
-    background-size: 28px 49px;
-    background-position: 0 0, 0 0, 14px 25px, 14px 25px, 0 0, 14px 25px;
     -webkit-animation: fadein .5s; /* Safari, Chrome and Opera > 12.1 */
     -moz-animation: fadein .5s; /* Firefox < 16 */
      -ms-animation: fadein .5s; /* Internet Explorer */
       -o-animation: fadein .5s; /* Opera < 12.1 */
-         animation: fadein .5s;
+    animation: fadein .5s;
+    overflow: clip;
+    background-color: #000000;
+opacity: 0.8;
+background-image:  linear-gradient(135deg, #353535 25%, transparent 25%), linear-gradient(225deg, #353535 25%, transparent 25%), linear-gradient(45deg, #353535 25%, transparent 25%), linear-gradient(315deg, #353535 25%, #000000 25%);
+background-position:  10px 0, 10px 0, 0 0, 0 0;
+background-size: 10px 10px;
+background-repeat: repeat;
 }
 
 @keyframes fadein {

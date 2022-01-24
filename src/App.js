@@ -48,8 +48,8 @@ function App() {
     });
   
     socket.on("update_game", (data) => {
+      console.log('RECIEVED DATA: ', data)
       setGame(data);
-      
     });
 
     socket.on("status", (data) => {
@@ -63,21 +63,23 @@ function App() {
 
   useEffect(() => {
     if(game){
-      console.log('GAME', game);
 
-      if(game.status === 'active'){
-
-        if(layout.length === 0){
-          assignLayout();
-        }
-        if(game.dealer === ''){
-          socket.emit("assign_dealer", game)
-        }
-      }else if(game.status === 'set trump'){
-        console.log('set up trump');
-      }else{
-        console.log('else')
+      if(game.players.length === 4){
+        assignLayout();
       }
+      
+      if(game.status === 'assign dealer' && game.host === socket.id){
+        socket.emit('assign_dealer', game);
+      }
+
+      if(game.status === 'deal' && game.host === socket.id){
+        socket.emit('deal', game);
+      }
+
+      if(game.status === 'set trump'){
+        console.log('set trump');
+      }
+      
     }
   }, [game]);
 
@@ -133,13 +135,13 @@ function App() {
 
       {layout.length ?
         <div id='Layout'>
-          <p>{message}</p>
+          <p style={{color: 'whitesmoke'}}>{message}</p>
           <Row>
             <Col>
               <center>
-                <p>{layout[0].name}</p>
+                <p>{game.dealer.id === layout[0].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[0].name}</p>
                 {layout[0].hand.map(card => {
-                  return <Card val={card} side={'front'} size={''} />
+                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
                 })}
               </center>
             </Col>
@@ -147,18 +149,18 @@ function App() {
           <Row>
           <Col>
             <center>
-              <p>{layout[3].name}</p>
+              <p>{game.dealer.id === layout[3].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[3].name}</p>
               {layout[3].hand.map(card => {
-                  return <Card val={card} side={'front'} size={''} />
+                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
                 })}
               </center>
             </Col>
             <Col></Col>
             <Col>
               <center>
-                <p>{layout[1].name}</p>
+                <p>{game.dealer.id === layout[1].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[1].name}</p>
                 {layout[1].hand.map(card => {
-                  return <Card val={card} side={'front'} size={''} />
+                  return <td><Card val={card} side={game.status === 'assign dealer' ? 'front' : 'back'} size={''} /></td>
                 })}
                 </center>
             </Col>
@@ -166,9 +168,9 @@ function App() {
           <Row>
           <Col>
             <center>
-              <p>{layout[2].name}</p>
+              <p>{game.dealer.id === layout[2].id ? <p style={{color: 'gold', display: 'inline'}}>♔</p> : <></>}{layout[2].name}</p>
               {layout[2].hand.map(card => {
-                  return <Card val={card} side={'front'} size={''} />
+                  return <td><Card val={card} side={'front'} size={''} /></td>
                 })}
               </center>
             </Col>
